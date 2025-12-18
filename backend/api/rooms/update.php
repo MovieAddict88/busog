@@ -153,13 +153,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
             
         case 'next_song':
-            // Check who added the song
-            $song_owner_sql = "SELECT user_name FROM room_queue WHERE room_id = ? AND status = 'playing'";
-            $song_owner_result = db_query_one($song_owner_sql, [$room['id']], 'i');
+            // Check who added the current song
+            if ($room['current_song_id']) {
+                $song_owner_sql = "SELECT user_name FROM room_queue WHERE room_id = ? AND song_id = ? AND status = 'playing'";
+                $song_owner_result = db_query_one($song_owner_sql, [$room['id'], $room['current_song_id']], 'ii');
 
-            if ($song_owner_result && $song_owner_result['user_name'] !== $user_name) {
-                echo json_encode(['success' => false, 'message' => 'Only the user who added the song can skip it.']);
-                exit;
+                if ($song_owner_result && $song_owner_result['user_name'] !== $user_name) {
+                    echo json_encode(['success' => false, 'message' => 'Only the user who added this song can skip it.']);
+                    exit;
+                }
             }
 
             // Mark current song as played
