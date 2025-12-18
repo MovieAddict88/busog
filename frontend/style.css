@@ -164,7 +164,7 @@ body::before {
 }
 
 .option-btn {
-    background: var(--accent-color);
+    background: linear-gradient(145deg, var(--accent-color), var(--accent-hover));
     color: white;
     border: none;
     padding: 12px 24px;
@@ -174,11 +174,19 @@ body::before {
     transition: var(--transition);
     width: 100%;
     font-size: var(--font-size-base);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(0);
 }
 
 .option-btn:hover {
-    background: var(--accent-hover);
-    transform: translateY(-2px);
+    background: linear-gradient(145deg, var(--accent-hover), var(--accent-color));
+    transform: translateY(-3px);
+    box-shadow: 0 7px 14px rgba(0, 0, 0, 0.12);
+}
+
+.option-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .quick-join {
@@ -245,11 +253,12 @@ body::before {
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(5px);
     display: none;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     z-index: 10000;
     padding: 2vw;
     animation: fadeIn 0.3s ease;
+    overflow-y: auto;
 }
 
 .modal-container {
@@ -384,33 +393,43 @@ body::before {
     gap: 10px;
     justify-content: center;
     border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .btn-primary {
-    background: var(--accent-color);
+    background: linear-gradient(145deg, var(--accent-color), var(--accent-hover));
     color: white;
+    transform: translateY(0);
 }
 
 .btn-primary:hover {
-    background: var(--accent-hover);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    background: linear-gradient(145deg, var(--accent-hover), var(--accent-color));
+    transform: translateY(-3px);
+    box-shadow: 0 7px 14px rgba(0, 0, 0, 0.12);
+}
+
+.btn-primary:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .btn-secondary {
-    background: #4a5568;
-    color: white;
-    border: none;
+    background: #f8f9fa;
+    color: #495057;
+    border: 1px solid #dee2e6;
     padding: 15px 30px;
     border-radius: var(--border-radius-sm);
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
+    box-shadow: none;
 }
 
 .btn-secondary:hover {
-    background: #2d3748;
+    background: #e9ecef;
+    border-color: #ced4da;
     transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
 /* Room List Styles */
@@ -1397,7 +1416,7 @@ body::before {
 }
 
 .add-to-queue-btn {
-    background: var(--info-color);
+    background: linear-gradient(145deg, var(--info-color), #2563eb);
     color: white;
     border: none;
     border-radius: var(--border-radius-sm);
@@ -1409,12 +1428,19 @@ body::before {
     display: flex;
     align-items: center;
     gap: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(0);
 }
 
 .add-to-queue-btn:hover {
-    background: #2563eb;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    background: linear-gradient(145deg, #2563eb, var(--info-color));
+    transform: translateY(-3px);
+    box-shadow: 0 7px 14px rgba(59, 130, 246, 0.2);
+}
+
+.add-to-queue-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .empty-message {
