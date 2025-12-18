@@ -337,9 +337,12 @@ $stats = $stats_result->fetch_assoc();
                                     <?php if ($room['password']): ?>
                                         <span class="badge badge-secondary"><i class="fas fa-lock"></i></span>
                                     <?php endif; ?>
-                                    <button onclick="deleteRoom(<?php echo $room['id']; ?>)" class="btn btn-danger btn-sm" title="Delete Room" style="display:inline-block; vertical-align: middle; margin-left: 5px;">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    <form action="delete_room.php" method="post" style="display:inline-block; vertical-align: middle; margin-left: 5px;" onsubmit="return confirm('Are you sure you want to delete this room?');">
+                                        <input type="hidden" name="room_id" value="<?php echo $room['id']; ?>">
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Delete Room">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -462,23 +465,6 @@ $stats = $stats_result->fetch_assoc();
                 .catch(error => {
                     alert('Error: ' + error);
                 });
-        }
-
-        function deleteRoom(roomId) {
-            if (confirm('Are you sure you want to delete this room?')) {
-                const form = document.createElement('form');
-                form.method = 'post';
-                form.action = 'delete_room.php';
-
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = 'room_id';
-                hiddenInput.value = roomId;
-
-                form.appendChild(hiddenInput);
-                document.body.appendChild(form);
-                form.submit();
-            }
         }
 
         // Initialize tooltips
