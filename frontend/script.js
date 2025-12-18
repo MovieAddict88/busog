@@ -386,6 +386,34 @@ function enterRoom() {
     // Update room info
     roomTitleText.textContent = currentRoom.room_name;
     roomCodeDisplay.textContent = currentRoom.room_code;
+
+    // Hide player for joiners and show a message
+    const playerContainer = document.querySelector('.player-container');
+    const playerElement = document.getElementById('video-player');
+    const controlsElement = document.querySelector('.controls');
+
+    if (!currentRoom.is_creator) {
+        if (playerElement) playerElement.style.display = 'none';
+        if (controlsElement) controlsElement.style.display = 'none';
+
+        let messageElement = document.getElementById('joiner-message');
+        if (!messageElement) {
+            messageElement = document.createElement('div');
+            messageElement.id = 'joiner-message';
+            messageElement.className = 'joiner-message';
+            if (playerContainer) {
+                playerContainer.insertBefore(messageElement, playerElement);
+            }
+        }
+        messageElement.innerHTML = '<i class="fas fa-satellite-dish"></i><p>Playback is controlled by the room creator.</p><p>The current song and queue will update automatically.</p>';
+        messageElement.style.display = 'flex';
+    } else {
+        // Ensure player is visible for the creator
+        if (playerElement) playerElement.style.display = 'block';
+        if (controlsElement) controlsElement.style.display = 'flex';
+        let messageElement = document.getElementById('joiner-message');
+        if (messageElement) messageElement.style.display = 'none';
+    }
     
     // Start room sync
     startRoomSync();
@@ -557,8 +585,16 @@ function updateRecentlyPlayed() {
 }
 
 async function syncPlayerWithRoom(roomData) {
+    // This function should now only run for the creator
+    if (!currentRoom.is_creator) {
+        return;
+    }
+
     if (!roomData.room || !roomData.room.current_video_source) {
-        // No song playing in room
+        // No song playing in room, so we stop the player
+        player.reset();
+        currentSongInfo.innerHTML = '<em>Select a song to begin</em>';
+        updatePlayerStatus('Ready', 'success');
         return;
     }
     
@@ -568,21 +604,26 @@ async function syncPlayerWithRoom(roomData) {
         return;
     }
     
-    // Check if we're already playing this video
+    // Check if we're already playing this video to avoid unnecessary reloads
     const currentSrc = player.currentSrc();
     if (currentSrc && currentSrc.includes(youtubeId)) {
-        // Already playing this video, just sync time if needed
+        // We are already on the right video.
+        // Let's just ensure the play/pause state is correct.
+        if (roomData.room.is_playing && player.paused()) {
+            player.play();
+        } else if (!roomData.room.is_playing && !player.paused()) {
+            player.pause();
+        }
         return;
     }
     
-    // Load and play the new video
+    // A new song is set, so load and play it.
     try {
         player.src({
             src: `https://www.youtube.com/watch?v=${youtubeId}`,
             type: 'video/youtube'
         });
         
-        // Wait for player to be ready
         player.ready(() => {
             if (roomData.room.is_playing) {
                 player.play();
@@ -1234,6 +1275,8 @@ async function triggerRoomNextSong() {
         if (result.success) {
             showNotification('Next song triggered', 'success');
             await syncRoomStatus();
+        } else {
+            showError(result.message || 'Could not skip the song.');
         }
     } catch (error) {
         console.error('Error triggering next song:', error);

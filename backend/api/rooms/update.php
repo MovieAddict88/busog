@@ -55,30 +55,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
             
+            // Determine if the queue is empty to decide song status
+            $check_queue_count_sql = "SELECT COUNT(*) as count FROM room_queue WHERE room_id = ?";
+            $queue_count_result = db_query_one($check_queue_count_sql, [$room['id']], 'i');
+            $is_first_song = ($queue_count_result['count'] == 0 && empty($room['current_song_id']));
+            $status = $is_first_song ? 'playing' : 'pending';
+
             // Add to queue
-            $queue_sql = "INSERT INTO room_queue (room_id, song_id, user_name, status) VALUES (?, ?, ?, 'pending')";
+            $queue_sql = "INSERT INTO room_queue (room_id, song_id, user_name, status) VALUES (?, ?, ?, ?)";
             $stmt = $conn->prepare($queue_sql);
-            $stmt->bind_param("iis", $room['id'], $song_id, $user_name);
+            $stmt->bind_param("iiss", $room['id'], $song_id, $user_name, $status);
             
             if ($stmt->execute()) {
-                // If this is the first song in queue and no current song, set it as current
-                $check_queue_count = "SELECT COUNT(*) as count FROM room_queue WHERE room_id = ? AND status = 'pending'";
-                $queue_count_result = db_query_one($check_queue_count, [$room['id']], 'i');
-                
-                if ($queue_count_result && $queue_count_result['count'] == 1 && empty($room['current_song_id'])) {
-                    $update_room_sql = "UPDATE rooms SET current_song_id = ?, last_active = NOW() WHERE id = ?";
+                // If this is the first song, set it as the current song in the room
+                if ($is_first_song) {
+                    $update_room_sql = "UPDATE rooms SET current_song_id = ?, is_playing = 1, last_active = NOW() WHERE id = ?";
                     $update_stmt = $conn->prepare($update_room_sql);
                     $update_stmt->bind_param("ii", $song_id, $room['id']);
                     $update_stmt->execute();
                     $update_stmt->close();
+                } else {
+                    // For subsequent songs, just update the room's last active time
+                    $update_last_active = "UPDATE rooms SET last_active = NOW() WHERE id = ?";
+                    $update_stmt = $conn->prepare($update_last_active);
+                    $update_stmt->bind_param("i", $room['id']);
+                    $update_stmt->execute();
+                    $update_stmt->close();
                 }
-                
-                // Update room last active
-                $update_last_active = "UPDATE rooms SET last_active = NOW() WHERE id = ?";
-                $update_stmt = $conn->prepare($update_last_active);
-                $update_stmt->bind_param("i", $room['id']);
-                $update_stmt->execute();
-                $update_stmt->close();
                 
                 echo json_encode([
                     'success' => true, 
@@ -153,6 +156,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
             
         case 'next_song':
+            // Check who added the current song
+            if ($room['current_song_id']) {
+                $song_owner_sql = "SELECT user_name FROM room_queue WHERE room_id = ? AND song_id = ? AND status = 'playing'";
+                $song_owner_result = db_query_one($song_owner_sql, [$room['id'], $room['current_song_id']], 'ii');
+
+                if ($song_owner_result && $song_owner_result['user_name'] !== $user_name) {
+                    echo json_encode(['success' => false, 'message' => 'Only the user who added this song can skip it.']);
+                    exit;
+                }
+            }
+
             // Mark current song as played
             $update_queue_sql = "UPDATE room_queue SET status = 'played', played_at = NOW() 
                                  WHERE room_id = ? AND status = 'playing'";
