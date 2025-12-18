@@ -1234,6 +1234,8 @@ async function triggerRoomNextSong() {
         if (result.success) {
             showNotification('Next song triggered', 'success');
             await syncRoomStatus();
+        } else {
+            showError(result.message || 'Could not skip the song.');
         }
     } catch (error) {
         console.error('Error triggering next song:', error);
