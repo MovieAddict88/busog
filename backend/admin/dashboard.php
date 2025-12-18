@@ -337,6 +337,12 @@ $stats = $stats_result->fetch_assoc();
                                     <?php if ($room['password']): ?>
                                         <span class="badge badge-secondary"><i class="fas fa-lock"></i></span>
                                     <?php endif; ?>
+                                    <form action="delete_room.php" method="post" style="display:inline-block; vertical-align: middle; margin-left: 5px;" onsubmit="return confirm('Are you sure you want to delete this room?');">
+                                        <input type="hidden" name="room_id" value="<?php echo $room['id']; ?>">
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Delete Room">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
